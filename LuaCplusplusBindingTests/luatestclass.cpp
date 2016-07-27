@@ -24,8 +24,10 @@ using namespace std;
 TestClass* TestClass_new(lua_State *L)
 {
     int attribute = luaL_checknumber(L, 1);
-    //    const char* another attribute = luaL_checkstring(L, 2);
-    return new TestClass(attribute);
+    float vecX = luaL_checknumber(L, 2);
+    float vecY = luaL_checknumber(L, 3);
+    float vecZ = luaL_checknumber(L, 4);
+    return new TestClass(attribute , vecX, vecY, vecZ);
 }
 
 
@@ -44,6 +46,31 @@ int TestClass_getAttribute(lua_State *L)
     return 1;
 }
 
+
+int TestClass_getAttributeVector(lua_State *L)
+{
+    TestClass* instance = luaW_check<TestClass>(L, 1);
+
+    //contains the x,y,z coordinates of the ngl:vec3 vector
+    float vectorArray[3];
+
+    vectorArray[0]=instance->getAttributeVector().m_x;//x value of vector
+    vectorArray[1]=instance->getAttributeVector().m_y;//y value of vector;
+    vectorArray[2]=instance->getAttributeVector().m_z;//z value of vector
+    lua_newtable(L);
+    //push a table of 3 elements to Lua stack (practically the ngl::Vec3), and retrieve it from the LUA script back again (see testLua.lua)
+      for(int i = 0;i < 3;i++)
+      {
+        lua_pushnumber(L,vectorArray[i]);
+        lua_rawseti(L,-2,i + 1);
+      }
+
+    return 1;
+}
+
+
+
+
 static luaL_Reg TestClass_table[] =
 {
     { NULL, NULL }
@@ -53,6 +80,7 @@ static luaL_Reg TestClass_metatable[] =
 {
     //the string getAttribute NEEDS to BE SPELLED PROPERLY based on TestClass function definition
     { "getAttribute", TestClass_getAttribute },
+    { "getAttributeVector", TestClass_getAttributeVector },
 
     { NULL, NULL }
 };
@@ -68,4 +96,5 @@ int luaopen_TestClass(lua_State* L)
     );
     return 1;
 }
+
 
